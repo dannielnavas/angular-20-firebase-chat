@@ -6,11 +6,9 @@ import {
 import { provideRouter } from '@angular/router';
 
 import { provideHttpClient } from '@angular/common/http';
-import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
-import { provideAuth } from '@angular/fire/auth';
-import { provideFirestore } from '@angular/fire/firestore';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getApp, initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { getAuth, provideAuth } from '@angular/fire/auth';
+import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 
@@ -20,14 +18,14 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(),
-    provideFirebaseApp(() => {
-      return initializeApp(environment.firebaseConfig);
-    }),
+    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideAuth(() => {
-      return getAuth();
+      const app = getApp();
+      return getAuth(app);
     }),
     provideFirestore(() => {
-      return getFirestore();
+      const app = getApp();
+      return getFirestore(app);
     }),
   ],
 };
