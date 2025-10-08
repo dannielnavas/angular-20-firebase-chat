@@ -2,9 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { User } from 'firebase/auth';
 import { Subscription } from 'rxjs';
 import { MensajeChat } from '../../models/chat';
-import { Usuario } from '../../models/user';
 import { Auth as AuthService } from '../../services/auth';
 import { Chat as ChatService } from '../../services/chat';
 
@@ -24,7 +24,7 @@ export class Chat {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
   @ViewChild('messageInput') messageInput!: ElementRef;
 
-  usuario: Usuario | null = null; // Información del usuario actual
+  usuario: User | null = null; // Información del usuario actual
   mensajes: MensajeChat[] = []; // Lista de mensajes del chat
   mensajeTexto = ''; // Texto del mensaje que está escribiendo el usuario
   enviandoMensaje = false; // Indica si se está enviando un mensaje
@@ -66,14 +66,7 @@ export class Chat {
   private async verificarAutenticacion(): Promise<void> {
     // this.usuario = this.authService.obtenerUsuarioActual();
     // Simulación de usuario autenticado para desarrollo
-    this.usuario = {
-      uid: 'usuario123',
-      nombre: 'Usuario de Prueba',
-      email: 'usuario@example.com',
-      fotoUrl: '',
-      fechaCreacion: new Date(),
-      ultimaConexion: new Date(),
-    };
+    this.usuario = this.authService.obtenerUsuarioActual();
     if (!this.usuario) {
       await this.router.navigate(['/auth']);
       throw new Error('Usuario no autenticado');
@@ -151,7 +144,7 @@ export class Chat {
       // Limpiamos el chat local
       // this.chatService.limpiarChat();
       // Cerramos sesión en Firebase
-      // await this.authService.cerrarSesion();
+      await this.authService.cerrarSesion();
       // Navegamos al login
       await this.router.navigate(['/auth']);
     } catch (error) {
