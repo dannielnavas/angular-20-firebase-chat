@@ -27,11 +27,7 @@ export class Auth {
 
       // Simulación de llamada al servicio de autenticación (reemplazar con la línea anterior en producción)
 
-      let usuario = null;
-
-      usuario = await new Promise((resolve) => {
-        setTimeout(() => resolve({ nombre: 'Usuario de Prueba' }), 1000);
-      });
+      const usuario = await this.authService.iniciarSesionConGoogle();
 
       if (usuario) {
         await this.router.navigate(['/chat']);
@@ -59,10 +55,10 @@ export class Auth {
   }
 
   ngOnInit(): void {
-    // this.authService.estaAutenticado$.subscribe(autenticado => {
-    //   if (autenticado) {
-    //     this.router.navigate(['/chat']);
-    //   }
-    // });
+    this.authService.estaAutenticado$.subscribe((autenticado) => {
+      if (autenticado) {
+        this.router.navigate(['/chat']);
+      }
+    });
   }
 }
