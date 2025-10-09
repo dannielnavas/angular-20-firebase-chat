@@ -129,7 +129,7 @@ export class Gemini {
       contents: contenidos,
       generationConfig: {
         maxOutputTokens: 800, // Límite de tokens para la respuesta
-        temperature: 0.7, // Creatividad moderada
+        temperature: 0.7, // Creatividad moderada 1 creativa, 0 más precisa
       },
       safetySettings: configuracionesSeguridad,
     };
