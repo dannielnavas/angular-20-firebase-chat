@@ -1,5 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, ViewChild, inject } from '@angular/core';
+import {
+  AfterViewChecked,
+  Component,
+  ElementRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { User } from 'firebase/auth';
@@ -14,13 +22,12 @@ import { Chat as ChatService } from '../../services/chat';
   templateUrl: './chat.html',
   styleUrl: './chat.css',
 })
-export class Chat {
+export class Chat implements OnInit, OnDestroy, AfterViewChecked {
   private authService = inject(AuthService);
   private chatService = inject(ChatService);
   private router = inject(Router);
 
   // Referencia al contenedor de mensajes para hacer scroll automático
-
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
   @ViewChild('messageInput') messageInput!: ElementRef;
 
@@ -33,6 +40,7 @@ export class Chat {
   mensajeError = ''; // Mensaje de error para mostrar al usuario
 
   private suscripciones: Subscription[] = [];
+
   // Control para hacer scroll automático
   private debeHacerScroll = false;
 
@@ -55,7 +63,6 @@ export class Chat {
    * Se ejecuta después de que Angular actualiza la vista
    * Lo usamos para hacer scroll automático cuando hay nuevos mensajes
    */
-
   ngAfterViewChecked(): void {
     if (this.debeHacerScroll) {
       this.scrollHaciaAbajo();
@@ -64,9 +71,8 @@ export class Chat {
   }
 
   private async verificarAutenticacion(): Promise<void> {
-    // this.usuario = this.authService.obtenerUsuarioActual();
-    // Simulación de usuario autenticado para desarrollo
     this.usuario = this.authService.obtenerUsuarioActual();
+
     if (!this.usuario) {
       await this.router.navigate(['/auth']);
       throw new Error('Usuario no autenticado');
@@ -75,10 +81,12 @@ export class Chat {
 
   private async inicializarChat(): Promise<void> {
     if (!this.usuario) return;
+
     this.cargandoHistorial = true;
+
     try {
       // Inicializamos el chat con el ID del usuario
-      // await this.chatService.inicializarChat(this.usuario.uid);
+      await this.chatService.inicializarChat(this.usuario.uid);
     } catch (error) {
       console.error('❌ Error al inicializar chat en componente:', error);
       throw error;
@@ -89,18 +97,20 @@ export class Chat {
 
   private configurarSuscripciones(): void {
     // Suscribirse a los mensajes del chat
-    // const subMensajes = this.chatService.mensajes$.subscribe(mensajes => {
-    //   this.mensajes = mensajes;
-    //   this.debeHacerScroll = true;
-    // });
+    const subMensajes = this.chatService.mensajes$.subscribe((mensajes) => {
+      this.mensajes = mensajes;
+      this.debeHacerScroll = true;
+    });
+
     // // Suscribirse al estado del asistente
-    // const subAsistente = this.chatService.asistenteRespondiendo$.subscribe(respondiendo => {
-    //   this.asistenteEscribiendo = respondiendo;
-    //   if (respondiendo) {
-    //     this.debeHacerScroll = true;
-    //   }
-    // });
-    // this.suscripciones.push(subMensajes, subAsistente);
+    const subAsistente = this.chatService.asistenteRespondiendo$.subscribe((respondiendo) => {
+      this.asistenteEscribiendo = respondiendo;
+      if (respondiendo) {
+        this.debeHacerScroll = true;
+      }
+    });
+
+    this.suscripciones.push(subMensajes, subAsistente);
   }
 
   async enviarMensaje(): Promise<void> {
@@ -112,18 +122,23 @@ export class Chat {
     // Limpiamos errores previos
     this.mensajeError = '';
     this.enviandoMensaje = true;
+
     // Guardamos el texto del mensaje y limpiamos el input
     const texto = this.mensajeTexto.trim();
     this.mensajeTexto = '';
+
     try {
       // Enviamos el mensaje usando el servicio de chat
-      // await this.chatService.enviarMensaje(texto);
+      await this.chatService.enviarMensaje(texto);
+
       // Hacemos focus en el input para continuar escribiendo
       this.enfocarInput();
     } catch (error: any) {
       console.error('❌ Error al enviar mensaje:', error);
+
       // Mostramos el error al usuario
       this.mensajeError = error.message || 'Error al enviar el mensaje';
+
       // Restauramos el texto en el input
       this.mensajeTexto = texto;
     } finally {
@@ -142,9 +157,11 @@ export class Chat {
   async cerrarSesion(): Promise<void> {
     try {
       // Limpiamos el chat local
-      // this.chatService.limpiarChat();
+      this.chatService.limpiarChat();
+
       // Cerramos sesión en Firebase
       await this.authService.cerrarSesion();
+
       // Navegamos al login
       await this.router.navigate(['/auth']);
     } catch (error) {
@@ -181,7 +198,6 @@ export class Chat {
    * Formatea el contenido de los mensajes del asistente
    * Convierte texto plano en HTML básico
    */
-
   formatearMensajeAsistente(contenido: string): string {
     return contenido
       .replace(/\n/g, '<br>')
