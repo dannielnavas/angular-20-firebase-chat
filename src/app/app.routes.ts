@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { AuthGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
   {
@@ -14,6 +15,7 @@ export const routes: Routes = [
   {
     path: 'chat',
     loadComponent: () => import('./components/chat/chat').then((c) => c.Chat),
+    canActivate: [AuthGuard], // Aquí puedes agregar guards si es necesario
     title: 'Chat - asistente',
   },
   {
